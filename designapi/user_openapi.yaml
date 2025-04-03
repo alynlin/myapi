@@ -1,0 +1,42 @@
+openapi: 3.0.3
+info:
+  title: OpenAPI User API
+  version: 1.0.0
+tags:
+  - name: user
+    description: Everything about your Users
+paths:
+  /users:
+    get:
+      tags:
+        - user
+      operationId: listUsers
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UsersResponse'
+components:
+  schemas:
+    UsersResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/User'
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
