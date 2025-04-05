@@ -13,12 +13,10 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type UserAPI struct {
-}
+type UserAPI interface {
 
-// Get /users
-func (api *UserAPI) ListUsers(c *gin.Context) {
-	// Your handler implementation
-	c.JSON(200, gin.H{"status": "OK"})
-}
 
+    // ListUsers Get /users
+     ListUsers(c *gin.Context)
+
+}
