@@ -25,6 +25,35 @@ type UserService struct {
 	logger logging.Logger
 }
 
+type UserServiceBuild struct {
+	repo repository.UserRepository
+	log  logging.Logger
+}
+
+func (b UserServiceBuild) Logger(log logging.Logger) UserServiceBuild {
+	b.log = log
+	return b
+}
+
+func (b UserServiceBuild) Build(ctx context.Context) (*UserService, error) {
+	if b.log == nil {
+		err := errors.New("logger is mandatory")
+		return nil, err
+	}
+
+	if b.repo == nil {
+		b.repo = &repository.UserManager{
+			//todo
+		}
+	}
+
+	return &UserService{
+		repo:   b.repo,
+		logger: b.log,
+	}, nil
+
+}
+
 func (s *UserService) ListUsers(ctx context.Context, limit int) (model.ImplResponse, error) {
 	users, err := s.repo.FindAll(limit)
 

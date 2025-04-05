@@ -11,6 +11,7 @@ package repository
 import (
 	"github.com/alynlin/myapi/pkg/internal/repository/model"
 	"gorm.io/gorm"
+	"time"
 )
 
 type UserRepository interface {
@@ -22,6 +23,15 @@ type UserManager struct {
 }
 
 func (mgr UserManager) FindAll(limit int) ([]model.User, error) {
+
 	//todo
-	return nil, nil
+	return []model.User{
+		model.User{
+			Model: gorm.Model{
+				ID:        10001,
+				CreatedAt: time.Now(),
+			},
+			Name: "fenglin",
+		},
+	}, nil
 }

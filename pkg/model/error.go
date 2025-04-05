@@ -1,10 +1,13 @@
 package model
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"io"
 	"net/http"
+	"os"
 )
 
 var (
@@ -43,12 +46,47 @@ type ErrorHandler func(w http.ResponseWriter, r *http.Request, err error, result
 func DefaultErrorHandler(ctx gin.Context, err error, result *ImplResponse) {
 	if _, ok := err.(*ParsingError); ok {
 		// Handle parsing errors
-		EncodeJSONResponse(err.Error(), func(i int) *int { return &i }(http.StatusBadRequest), ctx.J)
+		EncodeJSONResponse(err.Error(), func(i int) *int { return &i }(http.StatusBadRequest), ctx.Writer)
 	} else if _, ok := err.(*RequiredError); ok {
 		// Handle missing required errors
-		EncodeJSONResponse(err.Error(), func(i int) *int { return &i }(http.StatusUnprocessableEntity), w)
+		EncodeJSONResponse(err.Error(), func(i int) *int { return &i }(http.StatusUnprocessableEntity), ctx.Writer)
 	} else {
 		// Handle all other errors
-		EncodeJSONResponse(err.Error(), &result.Code, w)
+		EncodeJSONResponse(err.Error(), &result.Code, ctx.Writer)
 	}
+}
+
+// EncodeJSONResponse uses the json encoder to write an interface to the http response with an optional status code
+func EncodeJSONResponse(i interface{}, status *int, w http.ResponseWriter) error {
+	wHeader := w.Header()
+
+	f, ok := i.(*os.File)
+	if ok {
+		data, err := io.ReadAll(f)
+		if err != nil {
+			return err
+		}
+		wHeader.Set("Content-Type", http.DetectContentType(data))
+		wHeader.Set("Content-Disposition", "attachment; filename="+f.Name())
+		if status != nil {
+			w.WriteHeader(*status)
+		} else {
+			w.WriteHeader(http.StatusOK)
+		}
+		_, err = w.Write(data)
+		return err
+	}
+	wHeader.Set("Content-Type", "application/json; charset=UTF-8")
+
+	if status != nil {
+		w.WriteHeader(*status)
+	} else {
+		w.WriteHeader(http.StatusOK)
+	}
+
+	if i != nil {
+		return json.NewEncoder(w).Encode(i)
+	}
+
+	return nil
 }

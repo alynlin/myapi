@@ -8,8 +8,23 @@
 
 package controller
 
-import v1 "github.com/alynlin/myapi/pkg/model/v1"
+import (
+	"context"
+	v1 "github.com/alynlin/myapi/pkg/model/v1"
+	"github.com/gin-gonic/gin"
+	"net/http"
+)
 
 type UserAPIController struct {
-	service v1.UserAPIService
+	Service v1.UserAPIService
+}
+
+func (ctr *UserAPIController) ListUsers(c *gin.Context) {
+
+	ctx := context.Background()
+
+	res, _ := ctr.Service.ListUsers(ctx, 10)
+
+	c.JSON(http.StatusOK, res)
+
 }

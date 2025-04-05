@@ -65,7 +65,7 @@ func (b *LoggerBuilder) WithRequestId() *LoggerBuilder {
 }
 
 // Build creates a new logger using the configuration stored in the builder.
-func (b *LoggerBuilder) Build(ctx context.Context) (result *Logger, err error) {
+func (b *LoggerBuilder) Build(ctx context.Context) (result *ZapLogger, err error) {
 	// Prepare the logger configuration:
 	config := zap.NewProductionConfig()
 	config.Encoding = EncoderName
@@ -105,7 +105,7 @@ func (b *LoggerBuilder) Build(ctx context.Context) (result *Logger, err error) {
 	}
 
 	// Create and populate the object:
-	result = &Logger{
+	result = &ZapLogger{
 		logger: logger,
 		fields: fields,
 	}
