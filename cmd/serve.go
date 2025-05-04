@@ -13,7 +13,11 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap/zapcore"
 	"log"
+	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"github.com/spf13/cobra"
 )
@@ -34,13 +38,42 @@ to quickly create a Cobra application.`,
 		log.Printf("Server started")
 		router := createRouter()
 
-		log.Fatal(router.Run(":8080"))
+		srv := &http.Server{
+			Addr:    ":8080",
+			Handler: router,
+		}
+
+		// 在协程中启动服务器
+		go func() {
+			if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+				log.Fatalf("Server error: %v", err)
+			}
+		}()
+
+		// 监听终止信号
+		quit := make(chan os.Signal, 1)
+		signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+		<-quit
+		log.Println("Shutting down server...")
+
+		// 设置 5 秒超时上下文
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		// 优雅关闭服务器
+		if err := srv.Shutdown(ctx); err != nil {
+			log.Fatal("Server forced to shutdown:", err)
+		}
+
+		select {
+		case <-ctx.Done():
+			//todo
+			log.Println("Server exited")
+		}
 	},
 }
 
 func init() {
-	rootCmd.AddCommand(serveCmd)
-
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command
